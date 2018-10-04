@@ -2,19 +2,19 @@ var React = require("react");
 
 class Pokemonusers extends React.Component {
   render() {
-
     return (
       <html>
         <head />
         <body>
-          <h3>Users and Pokemon Relationships</h3>
-          <ul>
-            {this.props.pokemonusers.map(pokemonusers => (
-              <li key={pokemonusers.id}>
-                {pokemonusers.name}
-              </li>
-            ))}
-          </ul>
+          <form className="pokemonusers" method="POST" action="/pokemonusers">
+            <div>
+              Pokemon ID: <input name="pokemonid" type="text" />
+            </div>
+            <div>
+              User ID: <input name="userid" type="text" />
+            </div>
+            <input type="submit" value="Submit" />
+          </form>
         </body>
       </html>
     );

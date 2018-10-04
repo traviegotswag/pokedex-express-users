@@ -211,17 +211,44 @@ app.get('/users', (request, response) => {
       console.error('Query error:', err.stack);
       response.send('Error!');
     } else {
-      // console.log('Query result:', result);
-      // redirect to home page
+      console.log('Query result:', result);
+      //render a list of users, and allow user to click on each user to go to that user's page (done in jsx)
       response.render('users/home', {users: result.rows});
     }
   });
 });
 
+//within each users page, display the pokemons that a user has (need to reference joined table of pokemon and users)
+    //Usage of join tables
+    app.get('/users/:id', (request, response) => {
+        let userId = request.params.id;
+        const queryString = `SELECT pokemon_users.users_id AS UserID, pokemon.name AS Pokemon, users.name AS Trainer
+        FROM pokemon
+        INNER JOIN pokemon_users ON pokemon.id=pokemon_users.pokemon_id
+        INNER JOIN users ON pokemon_users.users_id = users.id
+        WHERE pokemon_users.users_id=($1)`;
+        let values = [userId];
+
+          pool.query(queryString, values, (err, result) => {
+            if (err) {
+                console.error('Query error:', err.stack);
+                response.send('Error!');
+            } else {
+                // console.log('Query result:', result);
+                response.render('users/userpage', {userspokemon: result.rows});
+            }
+        });
+    });
+
+//b. have an input field for users to type pokemon id to create the link
+
+
+
 //-----------------------------------------------------------------------
 
 // POST INFO FROM FORM AND INSERT INTO DATABASE
-app.get('/pokemonusers', (request, response) => {
+//get have slash
+app.get('/pokemonusers/', (request, response) => {
 
   const queryString = 'SELECT * FROM pokemon_users';
   pool.query(queryString, (err, result) => {
@@ -236,18 +263,24 @@ app.get('/pokemonusers', (request, response) => {
   });
 });
 
-//     ----------         ----------         ----------         ----------
+// POST INFO FROM FORM AND INSERT INTO DATABASE
+app.post('/pokemonusers', (request, response) => {
 
-//within the users page,
-    //a. allow for hyperlink to go to another page that displays the pokemon that each user has
-    //b. have an input field for users to type pokemon id to create the link
+  const queryString = 'INSERT INTO pokemon_users (pokemon_id, users_id) VALUES ($1, $2)';
+  const values = [request.body.pokemonid, request.body.userid];
+  // console.log(values);
 
-
-//create another page for relationship
-
-//
-
-
+  pool.query(queryString, values, (err, result) => {
+    if (err) {
+      console.error('Query error:', err.stack);
+      response.send('Error!');
+    } else {
+      console.log('Query result:', result);
+      // redirect to home page
+      response.redirect('/users')
+    }
+  });
+});
 
 
 /**

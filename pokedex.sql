@@ -150,3 +150,11 @@ INSERT INTO pokemon (name, img, weight, height)  VALUES('Dragonite','http://www.
 INSERT INTO pokemon (name, img, weight, height)  VALUES('Mewtwo','http://www.serebii.net/pokemongo/pokemon/150.png','122.0 kg','2.01 m');
 INSERT INTO pokemon (name, img, weight, height)  VALUES('Mew','http://www.serebii.net/pokemongo/pokemon/151.png','4.0 kg','0.41 m');
 
+INSERT INTO users (name) VALUES ('Ash');
+INSERT INTO users (name) VALUES ('Rocket');
+
+INSERT INTO pokemon_users (pokemon_id, users_id) VALUES (1,1);
+INSERT INTO pokemon_users (pokemon_id, users_id) VALUES (1,2);
+INSERT INTO pokemon_users (pokemon_id, users_id) VALUES (2,1);
+INSERT INTO pokemon_users (pokemon_id, users_id) VALUES (2,4);
+
