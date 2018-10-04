@@ -185,7 +185,7 @@ app.get('/users/new', userNew);
 // POST INFO FROM FORM AND INSERT INTO DATABASE
 app.post('/users/', (request, response) => {
 
-  const queryString = 'INSERT INTO users (name) VALUES ($1)';
+  const queryString = 'INSERT INTO users (name) VALUES ($1);'
   const values = [request.body.name];
   // console.log(values);
 
@@ -281,6 +281,113 @@ app.post('/pokemonusers', (request, response) => {
     }
   });
 });
+
+
+
+//PART2 - 4 Oct
+//----------------------------------------------------------------------------------
+const sha256 = require('js-sha256');
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+//Create user login system for pokemon masters
+app.get('/createaccount/', (request, response) => {
+
+      response.render('login/createaccount');
+    });
+
+
+// POST INFO FROM FORM AND INSERT INTO DATABASE
+app.post('/createaccount', (request, response) => {
+
+const queryString = 'INSERT INTO users (name, password) VALUES ($1, $2)';
+let username = request.body.name;
+let hashedPassword = sha256(request.body.password);
+const values = [username, hashedPassword];
+
+  pool.query(queryString, values, (err, result) => {
+
+    if (err) {
+        console.error('Query error:', err.stack);
+        response.send('Error!');
+    } else {
+        console.log('Query result:', result);
+        //Assign a cookie to the user, so that you know that the user has logged in.
+        response.cookie('login', username);
+        response.send("Account Created!");
+    }
+  });
+});
+
+//Create a login page
+app.get('/login/', (request, response) => {
+
+      response.render('login/login');
+    });
+
+//User log in authentication
+app.post('/login', (request, response) => {
+
+const queryString = 'SELECT password FROM users WHERE name = ($1)'
+let hashedPassword = sha256(request.body.password);
+let username = request.body.name;
+const values = [username];
+
+  pool.query(queryString, values, (err, result) => {
+    // console.log(result.rows);
+    if (err) {
+        console.error('Query error:', err.stack);
+        response.send('Error!');
+    } else if
+    //SELECT SQL query to look for users pw, then compare with user input
+        (hashedPassword === result.rows[0].password) {
+        response.cookie('login', username);
+        response.render('login/letsgo');
+    } else {
+        response.redirect('/login');
+    }
+  });
+});
+
+//User logout process, and clear cookie as well
+app.post('/logout', (request, response) => {
+    response.clearCookie('login');
+    response.redirect('/login');
+});
+
+
+//User captures pokemon
+app.post('/pokemon/capture', (request, response) => {
+
+    const queryString = 'INSERT INTO pokemon_users (pokemon_id, users_id) VALUES ($1, $2)';
+
+    //get cookie value, from this we can trace username
+    //at pokemon page, we can get pokemon name
+    //use join tables to update pokemon_id and users_id
+    var userCookie = request.cookies['login']; //get username (user.name)
+    // let pokemon_id = request.body.id //1
+
+    response.redirect('/users');
+
+  //   // const values = [pokemon_id,];
+
+  //   //   pool.query(queryString, values, (err, result) => {
+  //   //     // console.log(result.rows);
+  //   //     if (err) {
+  //   //         console.error('Query error:', err.stack);
+  //   //         response.send('Error!');
+  //   //     } else if
+  //   //     //SELECT SQL query to look for users pw, then compare with user input
+  //   //         (values === result.rows[0].password) {
+  //   //         response.cookie('login', username);
+  //   //         response.render('login/letsgo');
+  //   //     } else {
+  //   //         response.redirect('/login');
+  //   }
+  // });
+});
+
+
 
 
 /**
