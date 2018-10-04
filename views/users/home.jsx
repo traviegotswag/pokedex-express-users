@@ -2,16 +2,16 @@ var React = require("react");
 
 class Home extends React.Component {
   render() {
-    console.log(this);
+
     return (
       <html>
         <head />
         <body>
-          <h1>Welcome to Pokedex</h1>
+          <h3>List of Pokemon Masters</h3>
           <ul>
-            {this.props.pokemon.map(pokemon => (
-              <li key={pokemon.id}>
-                {pokemon.name}
+            {this.props.users.map(users => (
+              <li key={users.id}>
+                {users.name}
               </li>
             ))}
           </ul>

@@ -149,3 +149,4 @@ INSERT INTO pokemon (name, img, weight, height)  VALUES('Dragonair','http://www.
 INSERT INTO pokemon (name, img, weight, height)  VALUES('Dragonite','http://www.serebii.net/pokemongo/pokemon/149.png','210.0 kg','2.21 m');
 INSERT INTO pokemon (name, img, weight, height)  VALUES('Mewtwo','http://www.serebii.net/pokemongo/pokemon/150.png','122.0 kg','2.01 m');
 INSERT INTO pokemon (name, img, weight, height)  VALUES('Mew','http://www.serebii.net/pokemongo/pokemon/151.png','4.0 kg','0.41 m');
+

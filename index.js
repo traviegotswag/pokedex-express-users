@@ -1,7 +1,4 @@
 /**
- * To-do for homework on 28 Jun 2018
- * =================================
- * 1. Create the relevant tables.sql file
  * 2. New routes for user-creation
  * 3. Change the pokemon form to add an input for user id such that the pokemon belongs to the user with that id
  * 4. (FURTHER) Add a drop-down menu of all users on the pokemon form
@@ -14,7 +11,7 @@ const pg = require('pg');
 
 // Initialise postgres client
 const config = {
-  user: 'akira',
+  user: 'admin',
   host: '127.0.0.1',
   database: 'pokemons',
   port: 5432,
@@ -30,11 +27,8 @@ pool.on('error', function (err) {
   console.log('Idle client error', err.message, err.stack);
 });
 
-/**
- * ===================================
- * Configurations and set up
- * ===================================
- */
+
+//Configurations and set up------------------------------------------------------------------------------------------------
 
 // Init express app
 const app = express();
@@ -51,15 +45,12 @@ app.engine('jsx', reactEngine);
 
 /**
  * ===================================
- * Route Handler Functions
+ * Routes
  * ===================================
  */
 
  const getRoot = (request, response) => {
-  // query database for all pokemon
-
   // respond with HTML page displaying all pokemon
-  //
   const queryString = 'SELECT * from pokemon;';
   pool.query(queryString, (err, result) => {
     if (err) {
@@ -73,9 +64,36 @@ app.engine('jsx', reactEngine);
   });
 }
 
+app.get('/', getRoot);
+
+//-----------------------------------------------------------------------
+
+const editPokemonForm = (request, response) => {
+  let id = request.params['id'];
+  const queryString = 'SELECT * FROM pokemon WHERE id = ' + id + ';';
+  pool.query(queryString, (err, result) => {
+    if (err) {
+      console.error('Query error:', err.stack);
+    } else {
+      console.log('Query result:', result);
+
+      // redirect to home page
+      response.render( 'pokemon/edit', {pokemon: result.rows[0]} );
+    }
+  });
+}
+
+app.get('/pokemon/:id/edit', editPokemonForm);
+
+//-----------------------------------------------------------------------
+
 const getNew = (request, response) => {
   response.render('pokemon/new');
 }
+
+app.get('/pokemon/new', getNew);
+
+//-----------------------------------------------------------------------
 
 const getPokemon = (request, response) => {
   let id = request.params['id'];
@@ -92,10 +110,22 @@ const getPokemon = (request, response) => {
   });
 }
 
+app.get('/pokemon/:id', getPokemon);
+
+//-----------------------------------------------------------------------
+
+const deletePokemonForm = (request, response) => {
+  response.send("COMPLETE ME");
+}
+
+app.get('/pokemon/:id/delete', deletePokemonForm);
+
+//-----------------------------------------------------------------------
+
 const postPokemon = (request, response) => {
   let params = request.body;
-  
-  const queryString = 'INSERT INTO pokemon(name, height) VALUES($1, $2);';
+
+  const queryString = 'INSERT INTO pokemon(name, img, weight, height) VALUES($1, $2);';
   const values = [params.name, params.height];
 
   pool.query(queryString, values, (err, result) => {
@@ -110,20 +140,7 @@ const postPokemon = (request, response) => {
   });
 };
 
-const editPokemonForm = (request, response) => {
-  let id = request.params['id'];
-  const queryString = 'SELECT * FROM pokemon WHERE id = ' + id + ';';
-  pool.query(queryString, (err, result) => {
-    if (err) {
-      console.error('Query error:', err.stack);
-    } else {
-      console.log('Query result:', result);
-
-      // redirect to home page
-      response.render( 'pokemon/edit', {pokemon: result.rows[0]} );
-    }
-  });
-}
+app.post('/pokemon', postPokemon);
 
 const updatePokemon = (request, response) => {
   let id = request.params['id'];
@@ -143,71 +160,95 @@ const updatePokemon = (request, response) => {
   });
 }
 
-const deletePokemonForm = (request, response) => {
-  response.send("COMPLETE ME");
-}
+app.put('/pokemon/:id', updatePokemon);
+
+//-----------------------------------------------------------------------
 
 const deletePokemon = (request, response) => {
   response.send("COMPLETE ME");
 }
-/**
- * ===================================
- * User
- * ===================================
- */
 
+app.delete('/pokemon/:id', deletePokemon);
 
+//-----------------------------------------------------------------------
+
+// CREATE USER FORM
 const userNew = (request, response) => {
   response.render('users/new');
 }
 
-const userCreate = (request, response) => {
+app.get('/users/new', userNew);
+
+
+//-----------------------------------------------------------------------
+
+// POST INFO FROM FORM AND INSERT INTO DATABASE
+app.post('/users/', (request, response) => {
 
   const queryString = 'INSERT INTO users (name) VALUES ($1)';
-
   const values = [request.body.name];
-
-  console.log(queryString);
+  // console.log(values);
 
   pool.query(queryString, values, (err, result) => {
-
     if (err) {
-
       console.error('Query error:', err.stack);
-      response.send('dang it.');
+      response.send('Error!');
     } else {
-
       console.log('Query result:', result);
-
       // redirect to home page
-      response.redirect('/');
+      response.redirect('/users')
     }
   });
-}
+});
 
-/**
- * ===================================
- * Routes
- * ===================================
- */
+//-----------------------------------------------------------------------
 
-app.get('/', getRoot);
+app.get('/users', (request, response) => {
 
-app.get('/pokemon/:id/edit', editPokemonForm);
-app.get('/pokemon/new', getNew);
-app.get('/pokemon/:id', getPokemon);
-app.get('/pokemon/:id/delete', deletePokemonForm);
+  const queryString = 'SELECT * FROM users';
+  pool.query(queryString, (err, result) => {
+    if (err) {
+      console.error('Query error:', err.stack);
+      response.send('Error!');
+    } else {
+      // console.log('Query result:', result);
+      // redirect to home page
+      response.render('users/home', {users: result.rows});
+    }
+  });
+});
 
-app.post('/pokemon', postPokemon);
+//-----------------------------------------------------------------------
 
-app.put('/pokemon/:id', updatePokemon);
+// POST INFO FROM FORM AND INSERT INTO DATABASE
+app.get('/pokemonusers', (request, response) => {
 
-app.delete('/pokemon/:id', deletePokemon);
+  const queryString = 'SELECT * FROM pokemon_users';
+  pool.query(queryString, (err, result) => {
+    if (err) {
+      console.error('Query error:', err.stack);
+      response.send('Error!');
+    } else {
+      // console.log('Query result:', result);
+      // redirect to home page
+      response.render('pokemon_users/pokemonusers', {pokemonusers: result.rows});
+    }
+  });
+});
 
-// TODO: New routes for creating users
+//     ----------         ----------         ----------         ----------
 
-app.get('/users/new', userNew);
-app.post('/users', userCreate);
+//within the users page,
+    //a. allow for hyperlink to go to another page that displays the pokemon that each user has
+    //b. have an input field for users to type pokemon id to create the link
+
+
+//create another page for relationship
+
+//
+
+
+
 
 /**
  * ===================================
@@ -217,20 +258,19 @@ app.post('/users', userCreate);
 const server = app.listen(3000, () => console.log('~~~ Ahoy we go from the port of 3000!!!'));
 
 
+// // Handles CTRL-C shutdown
+// function shutDown() {
+//   console.log('Recalling all ships to harbour...');
+//   server.close(() => {
+//     console.log('... all ships returned...');
+//     pool.end(() => {
+//       console.log('... all loot turned in!');
+//       process.exit(0);
+//     });
+//   });
+// };
 
-// Handles CTRL-C shutdown
-function shutDown() {
-  console.log('Recalling all ships to harbour...');
-  server.close(() => {
-    console.log('... all ships returned...');
-    pool.end(() => {
-      console.log('... all loot turned in!');
-      process.exit(0);
-    });
-  });
-};
-
-process.on('SIGTERM', shutDown);
-process.on('SIGINT', shutDown);
+// process.on('SIGTERM', shutDown);
+// process.on('SIGINT', shutDown);
 
 
