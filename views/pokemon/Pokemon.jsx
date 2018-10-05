@@ -2,12 +2,15 @@ var React = require("react");
 
 class Pokemon extends React.Component {
   render() {
+
+    let actionPath = "/pokemon/capture/"+this.props.pokemon.id;
+
     return (
       <html>
         <head />
         <body>
           <div>
-            <form method="POST" action="/pokemon/capture">
+            <form method="POST" action={actionPath}>
                 <ul className="pokemon-list">
                   <li className="pokemon-attribute">
                     id: {this.props.pokemon.id}

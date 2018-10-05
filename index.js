@@ -105,7 +105,7 @@ const getPokemon = (request, response) => {
       console.log('Query result:', result);
 
       // redirect to home page
-      response.render( 'pokemon/pokemon', {pokemon: result.rows[0]} );
+      response.render( 'pokemon/pokemon', {pokemon: result.rows[0]});
     }
   });
 }
@@ -301,7 +301,7 @@ app.get('/createaccount/', (request, response) => {
 app.post('/createaccount', (request, response) => {
 
 const queryString = 'INSERT INTO users (name, password) VALUES ($1, $2)';
-let username = request.body.name;
+let userId = request.body.id;
 let hashedPassword = sha256(request.body.password);
 const values = [username, hashedPassword];
 
@@ -313,7 +313,7 @@ const values = [username, hashedPassword];
     } else {
         console.log('Query result:', result);
         //Assign a cookie to the user, so that you know that the user has logged in.
-        response.cookie('login', username);
+        response.cookie('login', userId);
         response.send("Account Created!");
     }
   });
@@ -328,7 +328,7 @@ app.get('/login/', (request, response) => {
 //User log in authentication
 app.post('/login', (request, response) => {
 
-const queryString = 'SELECT password FROM users WHERE name = ($1)'
+const queryString = 'SELECT * FROM users WHERE name = ($1)'
 let hashedPassword = sha256(request.body.password);
 let username = request.body.name;
 const values = [username];
@@ -338,57 +338,61 @@ const values = [username];
     if (err) {
         console.error('Query error:', err.stack);
         response.send('Error!');
-    } else if
-    //SELECT SQL query to look for users pw, then compare with user input
-        (hashedPassword === result.rows[0].password) {
-        response.cookie('login', username);
-        response.render('login/letsgo');
-    } else {
-        response.redirect('/login');
-    }
+    } else if (username || hashedPassword === undefined) {
+            if (username === result.rows[0].name && hashedPassword === result.rows[0].password)
+            {
+                response.cookie('username', username);
+                response.cookie('userid', result.rows[0].id);
+                response.render('login/letsgo');
+            } else {
+            response.redirect('/login');
+            }
+        } else {
+            response.redirect('/login');
+        }
   });
 });
 
+
 //User logout process, and clear cookie as well
 app.post('/logout', (request, response) => {
-    response.clearCookie('login');
+    response.clearCookie('username');
     response.redirect('/login');
 });
 
 
 //User captures pokemon
-app.post('/pokemon/capture', (request, response) => {
+app.post('/pokemon/capture/:id', (request, response) => {
 
     const queryString = 'INSERT INTO pokemon_users (pokemon_id, users_id) VALUES ($1, $2)';
+    var uniquePokemonId = request.params.id;
+    var userCookie = request.cookies['userid'];
+    const values = [uniquePokemonId, userCookie];
 
-    //get cookie value, from this we can trace username
-    //at pokemon page, we can get pokemon name
-    //use join tables to update pokemon_id and users_id
-    var userCookie = request.cookies['login']; //get username (user.name)
-    // let pokemon_id = request.body.id //1
-
-    response.redirect('/users');
-
-  //   // const values = [pokemon_id,];
-
-  //   //   pool.query(queryString, values, (err, result) => {
-  //   //     // console.log(result.rows);
-  //   //     if (err) {
-  //   //         console.error('Query error:', err.stack);
-  //   //         response.send('Error!');
-  //   //     } else if
-  //   //     //SELECT SQL query to look for users pw, then compare with user input
-  //   //         (values === result.rows[0].password) {
-  //   //         response.cookie('login', username);
-  //   //         response.render('login/letsgo');
-  //   //     } else {
-  //   //         response.redirect('/login');
-  //   }
-  // });
+    pool.query(queryString, values, (err, result) => {
+        if (err) {
+            console.error('Query error:', err.stack);
+            response.send('Error!');
+        } else {
+            response.redirect('/users/');
+        }
+    });
 });
 
 
 
+
+
+
+    //get cookie value, from this we can trace username
+    //at pokemon page, we can get pokemon name
+    //use join tables to update pokemon_id and users_id
+
+
+  //       //SELECT SQL query to look for users pw, then compare with user input
+
+  //   }
+  // });
 
 /**
  * ===================================
